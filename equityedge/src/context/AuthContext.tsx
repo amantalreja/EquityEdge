@@ -1,7 +1,8 @@
-import { createContext, useContext, useState } from 'react';
-import type { ReactNode } from 'react'; // <-- The fix is here!
+import { createContext, useContext, useState, useEffect } from 'react';
+import type { ReactNode } from 'react'; // <-- The fix is applied here
 
-// Define the shape of our user and context
+import Cookies from 'js-cookie';
+
 interface User {
   name: string;
   email: string;
@@ -13,22 +14,35 @@ interface AuthContextType {
   logout: () => void;
 }
 
-// Create the context with a default value
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Create the AuthProvider component
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
 
-  // Mock login function
+  useEffect(() => {
+    const sessionCookie = Cookies.get('auth_session');
+    if (sessionCookie) {
+      try {
+        const loggedInUser: User = JSON.parse(sessionCookie);
+        setUser(loggedInUser);
+      } catch (e) {
+        console.error("Failed to parse user from cookie", e);
+        Cookies.remove('auth_session');
+      }
+    }
+  }, []);
+
   const login = () => {
     const mockUser: User = { name: 'Amandeep Talreja', email: 'aman@example.com' };
+    const inFiveMinutes = new Date(new Date().getTime() + 5 * 60 * 1000);
+    
     setUser(mockUser);
+    Cookies.set('auth_session', JSON.stringify(mockUser), { expires: inFiveMinutes }); 
   };
 
-  // Mock logout function
   const logout = () => {
     setUser(null);
+    Cookies.remove('auth_session');
   };
 
   return (
@@ -38,7 +52,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-// Create a custom hook for easy access to the context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
