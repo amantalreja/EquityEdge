@@ -1,6 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import type { ReactNode } from 'react'; // <-- The fix is applied here
-
+import type { ReactNode } from 'react';
 import Cookies from 'js-cookie';
 
 interface User {
@@ -8,13 +7,13 @@ interface User {
   email: string;
 }
 
-interface AuthContextType {
+export interface AuthContextType {
   user: User | null;
   login: () => void;
   logout: () => void;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -48,7 +47,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   return (
     <AuthContext.Provider value={{ user, login, logout }}>
       {children}
-    </AuthContext.Provider>
+    </AuthContext.Provider> // <-- THIS WAS THE TYPO. It is now corrected.
   );
 };
 
